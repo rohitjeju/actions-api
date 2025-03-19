@@ -33,21 +33,23 @@ app = FastAPI(
 class Action(BaseModel):
     id: int
     name: str
-    description: Optional[str] = None
-    price: float
+    description: Optional[str] = None    
 
     class Config:
         schema_extra = {
             "example": {
                 "id": 1,
                 "name": "Actionable Email",
-                "description": "An email that requires user action",
-                "price": 0.0
+                "description": "An email that requires user action"                
             }
         }
 
 # In-memory database
-actions_db = ["Actionable Emails", "Actionable Chats", "Pending Approvals"]
+actions_db = [
+    Action(id=1, name="Actionable Emails", description="Emails that require user action"),
+    Action(id=2, name="Actionable Chats", description="Chats that need attention"),
+    Action(id=3, name="Pending Approvals", description="Items waiting for approval")
+]
 
 @app.get("/")
 async def root():
@@ -60,7 +62,7 @@ async def root():
     return {"message": "Welcome to the Actions API"}
 
 @app.get("/actions", response_model=List[Action])
-async def get_items():
+async def get_actions():
     """
     Get all available actions in the system.
     
@@ -72,13 +74,13 @@ async def get_items():
     """
     return actions_db
 
-@app.get("/actions/{item_id}", response_model=Action)
-async def get_item(item_id: int):
+@app.get("/actions/{action_id}", response_model=Action)
+async def get_action(action_id: int):
     """
     Get a specific action by its ID.
     
     Args:
-        item_id (int): The unique identifier of the action
+        action_id (int): The unique identifier of the action
         
     Returns:
         Action: The requested action object
@@ -86,10 +88,10 @@ async def get_item(item_id: int):
     Raises:
         HTTPException: If the action is not found (404)
     """
-    item = next((item for item in actions_db if item.id == item_id), None)
-    if item is None:
+    action = next((action for action in actions_db if action.id == action_id), None)
+    if action is None:
         raise HTTPException(status_code=404, detail="Action not found")
-    return item
+    return action
 
 # @app.post("/actions", response_model=Action)
 # async def create_item(item: Action):
@@ -110,26 +112,26 @@ async def get_item(item_id: int):
 #     actions_db.append(item)
 #     return item
 
-@app.put("/actions/{action_id}", response_model=Action)
-async def update_action(action_id: int, action: Action):
-    """
-    Update an existing action by its ID.
+# @app.put("/actions/{action_id}", response_model=Action)
+# async def update_action(action_id: int, action: Action):
+#     """
+#     Update an existing action by its ID.
     
-    Args:
-        action_id (int): The unique identifier of the action to update
-        action (Action): The updated action object
+#     Args:
+#         action_id (int): The unique identifier of the action to update
+#         action (Action): The updated action object
         
-    Returns:
-        Action: The updated action object
+#     Returns:
+#         Action: The updated action object
         
-    Raises:
-        HTTPException: If the action is not found (404)
-    """
-    index = next((i for i, x in enumerate(actions_db) if x.id == action_id), None)
-    if index is None:
-        raise HTTPException(status_code=404, detail="Action not found")
-    actions_db[index] = action
-    return action
+#     Raises:
+#         HTTPException: If the action is not found (404)
+#     """
+#     index = next((i for i, x in enumerate(actions_db) if x.id == action_id), None)
+#     if index is None:
+#         raise HTTPException(status_code=404, detail="Action not found")
+#     actions_db[index] = action
+#     return action
 
 # @app.delete("/items/{item_id}")
 # async def delete_item(item_id: int):
